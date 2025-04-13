@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Scanner</title>
+</head>
+<body>
+    <h1>Scan Your Pokémon Cards</h1>
+    <div style="position: relative; width: 100%; max-width: 400px; margin: auto;">
+        <video id="camera" autoplay playsinline style="width: 100%;"></video>
+        <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px dashed red; pointer-events: none;"></div>
+    </div>
+    <p id="error-message" style="color: red; display: none;">Unable to access the camera. Please check your browser settings.</p>
+    <button id="capture">Capture</button>
+    <canvas id="snapshot" style="display:none;"></canvas>
+    <script>
+        const video = document.getElementById('camera');
+        const overlay = document.getElementById('overlay');
+        const errorMessage = document.getElementById('error-message');
+
+        // Check for mediaDevices support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("Camera access is not supported on this browser.");
+            errorMessage.style.display = "block";
+            errorMessage.textContent = "Camera access is not supported on this browser.";
+        } else {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    console.log("Camera stream started successfully.");
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Camera access denied:", err);
+                    errorMessage.style.display = "block";
+                    errorMessage.textContent = "Unable to access the camera. Please check your permissions or try a different browser.";
+                });
+        }
+
+        const captureButton = document.getElementById('capture');
+        const canvas = document.getElementById('snapshot');
+        const context = canvas.getContext('2d');
+
+        captureButton.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob, 'card.jpg');
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    alert(data.message);
+                })
+                .catch(err => {
+                    console.error("Upload failed:", err);
+                    alert("Failed to upload the image. Please try again.");
+                });
+            }, 'image/jpeg');
+        });
+    </script>
+</body>
+</html>

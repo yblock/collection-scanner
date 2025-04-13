@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #444;
+        }
+        h2 {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+        }
+        #qr-code {
+            display: block;
+            margin: 10px auto;
+            max-width: 200px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        thead {
+            background-color: #007bff;
+            color: #fff;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            font-size: 16px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        td {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pokémon Card Collection</h1>
+    <div>
+        <h2>Scan QR Code to Start Scanning</h2>
+        <img id="qr-code" src="/qr-code" alt="QR Code to connect to the mobile scanner">
+    </div>
+    <button id="refresh">Refresh</button>
+    <table id="card-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Series</th>
+                <th>Market Price</th>
+                <th>Date Scanned</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be populated dynamically -->
+        </tbody>
+    </table>
+    <script>
+        function loadCards() {
+            fetch('/cards')
+                .then(response => response.json())
+                .then(cards => {
+                    const tableBody = document.querySelector('#card-table tbody');
+                    tableBody.innerHTML = ''; // Clear existing rows
+                    cards.forEach(card => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${card[1]}</td>
+                            <td>${card[2]}</td>
+                            <td>$${card[3].toFixed(2)}</td>
+                            <td>${new Date(card[4]).toLocaleString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+
+        document.getElementById('refresh').addEventListener('click', loadCards);
+
+        // Initial load
+        loadCards();
+    </script>
+</body>
+</html>
